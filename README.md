@@ -1,27 +1,36 @@
+<div align="center">
+    <img alt="Stapel" src="./media/stapel.png"/>
+</div>
+
 # Stapel
 
 A native stack navigation library for SwiftUI enabling programmatic and interactive navigation, using only NavigationLinks.
 
+> 👉 Check out the accompanying [release post](https://brunoscheufler.com/blog/2020-12-30-introducing-stapel)
+
 ## Installation
 
-Stapel is compatible with SwiftUI projects building for `iOS 14`  and newer.
+Stapel is compatible with SwiftUI projects building for `iOS 14` and newer.
 
 You can install Stapel via Swift Package Manager. In Xcode, go to `File > Swift Packages > Add Package Dependency...`, and follow the instructions.
 
 ### Why Stapel?
 
-Existing navigation libraries diverge from the navigation offered in native SwiftUI, which is understandable given the behaviour
+Existing navigation libraries diverge from the navigation experience offered in native SwiftUI, which is understandable given the behaviour
 most people are used to from NavigationLinks and managing nested navigation.
 
-Stapel tries to create a simple layer of abstraction managing virtual stack containing views to be rendered in a nested fashion.
-It does this by allowing so-called pusher views to register themselves when they appear for the first time, creating a virtual view hierarchy.
+This difference, however, often means that libraries won't use regular NavigationLinks, so trivial features like back buttons, or using common modifiers for toolbars
+won't work the same way as you'd expect.
+
+Stapel tries to create a simple layer of abstraction managing a virtual stack containing views to be rendered in a nested fashion.
+It does this by using so-called pusher views which register themselves when they appear for the first time, creating a virtual view hierarchy.
 This is then used to determine where to push a new view. At the moment, it will be rendered for the view that is on top, or rather for
 the pusher that was registered most recently.
 
 ### Why is Stapel not available for macOS?
 
-As we have to use [StackNavigationStyle](https://developer.apple.com/documentation/swiftui/stacknavigationviewstyle) to be able to properly handle stack navigation, it's a requirement for Stapel to work. Unfortunately, as of now, StackNavigationStyle
-is not available for macOS.
+As we have to use [StackNavigationStyle](https://developer.apple.com/documentation/swiftui/stacknavigationviewstyle) to be able to properly handle stack navigation,
+it's a hard requirement for Stapel to work. Unfortunately, as of now, StackNavigationStyle is not available for macOS.
 
 ## Usage
 
@@ -38,13 +47,13 @@ import Stapel
 
 struct ContentView: View {
     @StateObject var stack = Stack()
-    
+
     var body: some View {
         WithStapel {
             Text("Root View")
         }
-        // Pass down stack to access it anywhere, this is required!
-        .environmentObject(stack)                
+        // Pass down the stack to access it anywhere, this is required!
+        .environmentObject(stack)
     }
 }
 ```
@@ -57,7 +66,7 @@ import Stapel
 
 struct ContentView: View {
     @StateObject var stack = Stack()
-    
+
     var body: some View {
         WithStapel {
             StackNavigationLink(label: {
@@ -66,11 +75,13 @@ struct ContentView: View {
                 Text("Hello world!")
             }
         }
-        // Pass down stack to access it anywhere, this is required!
-        .environmentObject(stack)                
+        // Pass down the stack to access it anywhere, this is required!
+        .environmentObject(stack)
     }
 }
 ```
+
+![Simple](https://static.brunoscheufler.com/posts/2020-12-30-stapel/simple.gif)
 
 After adding `WithStapel` to your view tree, it will automatically register a root pusher using the stack passed down as an environment object
 and render pushed views assigned to it from now on. You need to add a pusher to every subsequent layer of your navigation, if you
@@ -80,7 +91,7 @@ Internally, Stapel will evaluate the list of registered pusher views and attach 
 with the view "on top". This results in a natural stack navigation behaviour, where new views are pushed on top.
 
 As Stapel utilizes only native NavigationLink views under the hood, you get the benefits of having a working back button, which also
-allows to pop to root, without any further configuration. You can also customize the navigation as you would do in any other app, Stapel
+allows users to pop to root, without any further configuration. You can also customize the navigation as you would do in any other app, Stapel
 is merely concerned with managing your stack and deciding where a pushed view should be rendered.
 
 ### Link-based navigation
@@ -117,7 +128,7 @@ Button {
 
 This is almost a one-to-one implementation of the StackNavigationLink, which you can customize even further.
 Using `stack.push`, you can push any view to the stack, whether you are in the root or leaf node of the view hierarchy.
-Just push your view, and Stapel will make sure it's rendered where it should be. 
+Just push your view, and Stapel will make sure it's rendered where it should be.
 
 ### Multiple layers (nested navigation)
 
@@ -130,7 +141,7 @@ import Stapel
 
 struct ContentView: View {
     @StateObject var stack = Stack()
-    
+
     var body: some View {
         WithStapel {
             Text("Root View")
@@ -160,5 +171,8 @@ struct ContentView: View {
     }
 }
 ```
+
+![Nested](https://static.brunoscheufler.com/posts/2020-12-30-stapel/nested.gif)
+
 
 As you can see, you can go on and on (please split out your sub-views though).

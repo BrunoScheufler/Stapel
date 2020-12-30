@@ -84,7 +84,7 @@ public class AnyStack<T>: ObservableObject {
 ///         WithStapel {
 ///           Text("Root View")
 ///         }
-///         // Pass down stack to access it anywhere, this is required!
+///         // Pass down the stack to access it anywhere, this is required!
 ///         .environmentObject(stack)
 ///       }
 ///     }
