@@ -126,4 +126,29 @@ class Tests: XCTestCase {
         toSecond.tap()
         backToFirst.tap()
     }
+    
+    func testWithEvaluateTruthy() {
+        let app = launchApp("evaluate")
+
+        XCTAssert(app.staticTexts["Root view"].exists)
+        
+        let shouldntPush = app.buttons["Push falsy"]
+        shouldntPush.tap()
+        
+        XCTAssert(app.staticTexts["Root view"].exists)
+        XCTAssert(!app.staticTexts["No-op"].exists)
+    }
+    
+    func testWithEvaluateFalsy() {
+        let app = launchApp("evaluate")
+
+        XCTAssert(app.staticTexts["Root view"].exists)
+        
+        let shouldntPush = app.buttons["Push truthy"]
+        shouldntPush.tap()
+        
+        XCTAssert(!app.staticTexts["Root view"].exists)
+        XCTAssert(app.staticTexts["Pushed with evaluation"].exists)
+
+    }
 }
