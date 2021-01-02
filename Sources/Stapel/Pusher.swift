@@ -49,7 +49,7 @@ struct Pusher: View {
             // On appear, register in stack. If the current pusher
             // is already registered, this will be a noop
             .onAppear {
-                stack.register(pusher: id, evaluate: self.evaluate)
+                stack.register(id, self.evaluate)
             }
             // When the view is popped (value changes from true to false),
             // we'll pop the stack as well and reset the active flag

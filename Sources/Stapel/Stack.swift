@@ -34,7 +34,7 @@ public class AnyStack<T>: ObservableObject {
     ///       Text("Root View")
     ///     }
     public func push(view: T, context: [String: Any] = [:]) -> Void {
-        // Find top-most pusher to assign view to
+        // Find active pusher to assign view to
         guard let pusherId = activePusher() else {
             return
         }
@@ -101,7 +101,7 @@ public class AnyStack<T>: ObservableObject {
         })
     }
     
-    func register(pusher: Int, evaluate: PusherEvalFunc? = nil) -> Void {
+    func register(_ pusher: Int, _ evaluate: PusherEvalFunc? = nil) -> Void {
         guard !self.pushers.keys.contains(pusher) else {
             return
         }
