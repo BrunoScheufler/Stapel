@@ -18,20 +18,11 @@ public struct WithStapel<Content: View>: View {
     
     /// Create WithStapel view
     ///
-    /// - Parameter content: Views to render as children
-    ///
-    public init(@ViewBuilder content: @escaping () -> Content) {
-        self.content = content()
-        self.shouldPush = nil
-    }
-    
-    /// Create WithStapel view with evaluation function
-    ///
-    /// - Parameter shouldPush: An evaluation function for the root-level pusher to
+    /// - Parameter shouldPush: An optional evaluation function for the root-level pusher to
     ///   decide whether to push a view or not based on supplied context
     /// - Parameter content: Views to render as children
     ///
-    public init(shouldPush: @escaping PusherEvalFunc, @ViewBuilder content: @escaping () -> Content) {
+    public init(_ shouldPush: PusherEvalFunc? = nil, @ViewBuilder content: @escaping () -> Content) {
         self.content = content()
         self.shouldPush = shouldPush
     }
