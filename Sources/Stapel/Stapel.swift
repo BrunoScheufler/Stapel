@@ -35,11 +35,17 @@ public struct WithStapel<Content: View>: View {
         self.content = content()
         self.shouldPush = shouldPush
     }
-        
+    
     public var body: some View {
         NavigationView {
-            WithPusher(shouldPush: shouldPush) {
-                content
+            if let hasEvalFunc = shouldPush {
+                WithPusher(shouldPush: hasEvalFunc) {
+                    content
+                }
+            } else {
+                WithPusher {
+                    content
+                }
             }
         }
         // This is crucial for natural stack behaviour
