@@ -1,5 +1,14 @@
 import SwiftUI
 
+struct PusherState<T> {
+    var view: StackViewType<T>
+    var evaluator: (([String: Any]) -> Bool)?
+    
+    init(_ view: StackViewType<T>) {
+        self.view = view
+    }
+}
+
 struct Pusher: View {
     // Assign time-based identifier to get incrementing
     // values for subsequent Pusher views instack. This is extremly
@@ -10,13 +19,13 @@ struct Pusher: View {
     @EnvironmentObject var stack: Stack
     
     @State var isActive = true
-        
+    
     func retrieveViewToRender() -> (AnyView?) {
-        guard let hasEntry = stack.views[id] else {
+        guard let hasEntry = stack.pushers[id] else {
             return nil
         }
         
-        guard case let .set(withView) = hasEntry else {
+        guard case let .set(withView) = hasEntry.view else {
             return nil
         }
         

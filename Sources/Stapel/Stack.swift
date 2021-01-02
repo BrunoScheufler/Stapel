@@ -6,18 +6,19 @@ enum StackViewType<T> {
 }
 
 public class AnyStack<T>: ObservableObject {
-    @Published var views: [Int: StackViewType<T>]
+    // Store registered pusher states
+    @Published var pushers: [Int: PusherState<T>]
     
     public init() {
-        self.views = [:]
+        self.pushers = [:]
     }
     
     func activePusher() -> Int? {
-        guard self.views.count > 0 else {
+        guard self.pushers.count > 0 else {
             return nil
         }
         
-        let sortedKeys = self.views.keys.sorted()
+        let sortedKeys = self.pushers.keys.sorted()
         
         let activePusherId = sortedKeys[sortedKeys.count - 1]
         
@@ -25,11 +26,11 @@ public class AnyStack<T>: ObservableObject {
     }
     
     func rootPusher() -> Int? {
-        guard self.views.count > 0 else {
+        guard self.pushers.count > 0 else {
             return nil
         }
         
-        let sortedKeys = self.views.keys.sorted()
+        let sortedKeys = self.pushers.keys.sorted()
         
         let rootPusherId = sortedKeys[0]
         
@@ -37,38 +38,48 @@ public class AnyStack<T>: ObservableObject {
     }
     
     public func push(view: T) -> Void {
-        guard self.views.count > 0 else {
+        guard self.pushers.count > 0 else {
             return
         }
         
-        let sortedKeys = self.views.keys.sorted()
+        let sortedKeys = self.pushers.keys.sorted()
         
         let pusherId = sortedKeys[sortedKeys.count - 1]
         
         withAnimation {
-            self.views[pusherId] = .set(view)
+            updatePusherView(pusherId, .set(view))
         }
     }
     
-    func pusherPop(_ pusher: Int) -> Void {
-        self.views[pusher] = .empty
+    func updatePusherView(_ pusherId: Int, _ viewType: StackViewType<T>) {
+        guard var state = self.pushers[pusherId] else {
+            return
+        }
         
-        let sortedKeys = self.views.keys.sorted()
+        state.view = viewType
+        
+        self.pushers[pusherId] = state
+    }
+    
+    func pusherPop(_ pusher: Int) -> Void {
+        updatePusherView(pusher, .empty)
+        
+        let sortedKeys = self.pushers.keys.sorted()
         
         // Remove all views after popped pusher, this is to prevent old empty pushers from being registered
         sortedKeys.filter { (key) -> Bool in
             return key > pusher
         }.forEach({ key in
-            self.views.removeValue(forKey: key)
+            self.pushers.removeValue(forKey: key)
         })
     }
     
     func register(pusher: Int) -> Void {
-        guard !self.views.keys.contains(pusher) else {
+        guard !self.pushers.keys.contains(pusher) else {
             return
         }
         
-        self.views[pusher] = .empty
+        self.pushers[pusher] = PusherState(.empty)
     }
 }
 
