@@ -31,7 +31,7 @@ public struct WithStapel<Content: View>: View {
     ///   decide whether to push a view or not based on supplied context
     /// - Parameter content: Views to render as children
     ///
-    public init(shouldPush: @escaping PusherEvalFunc, @ViewBuilder content: @escaping () -> Content) {
+    public init(_ shouldPush: @escaping PusherEvalFunc, @ViewBuilder content: @escaping () -> Content) {
         self.content = content()
         self.shouldPush = shouldPush
     }
@@ -39,7 +39,7 @@ public struct WithStapel<Content: View>: View {
     public var body: some View {
         NavigationView {
             if let hasEvalFunc = shouldPush {
-                WithPusher(shouldPush: hasEvalFunc) {
+                WithPusher(hasEvalFunc) {
                     content
                 }
             } else {

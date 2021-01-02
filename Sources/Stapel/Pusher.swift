@@ -89,7 +89,7 @@ public struct WithPusher<Content: View>: View {
     // Initialize stack layer with evaluation function
     /// - Parameter shouldPush: When this pusher is active, this function will decide whether a view should be pushed onto the stack
     /// - Parameter content: Views to render as children
-    public init(shouldPush: @escaping PusherEvalFunc, @ViewBuilder content: @escaping () -> Content) {
+    public init(_ shouldPush: @escaping PusherEvalFunc, @ViewBuilder content: @escaping () -> Content) {
         self.content = content()
         self.shouldPush = shouldPush
     }
