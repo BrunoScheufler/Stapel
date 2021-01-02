@@ -13,15 +13,32 @@ import SwiftUI
 @available(iOS 14, *)
 @available(macOS, unavailable) // Unfortunately, StackNavigationStyle is not available on macOS
 public struct WithStapel<Content: View>: View {
+    let shouldPush: PusherEvalFunc?
     let content: Content
     
+    /// Create WithStapel view
+    ///
+    /// - Parameter content: Views to render as children
+    ///
     public init(@ViewBuilder content: @escaping () -> Content) {
         self.content = content()
+        self.shouldPush = nil
+    }
+    
+    /// Create WithStapel view with evaluation function
+    ///
+    /// - Parameter shouldPush: An evaluation function for the root-level pusher to
+    ///   decide whether to push a view or not based on supplied context
+    /// - Parameter content: Views to render as children
+    ///
+    public init(shouldPush: @escaping PusherEvalFunc, @ViewBuilder content: @escaping () -> Content) {
+        self.content = content()
+        self.shouldPush = shouldPush
     }
         
     public var body: some View {
         NavigationView {
-            WithPusher {
+            WithPusher(shouldPush: shouldPush) {
                 content
             }
         }

@@ -1,6 +1,6 @@
 import SwiftUI
 
-typealias PusherEvalFunc = (([String: Any]) -> Bool)
+public typealias PusherEvalFunc = (([String: Any]) -> Bool)
 
 struct PusherState<T> {
     var view: StackViewType<T>
@@ -76,11 +76,12 @@ struct Pusher: View {
 ///       Text("Root View")
 ///     }
 public struct WithPusher<Content: View>: View {
-    let shouldPush: PusherEvalFunc? = nil
+    let shouldPush: PusherEvalFunc?
     let content: Content
-    
-    public init(@ViewBuilder content: @escaping () -> Content) {
+        
+    public init(shouldPush: PusherEvalFunc?, @ViewBuilder content: @escaping () -> Content) {
         self.content = content()
+        self.shouldPush = shouldPush
     }
     
     public var body: some View {
