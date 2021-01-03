@@ -112,6 +112,17 @@ This is kept intentionally simple for now, but might be extended with state mana
 a navigation link to push when a condition evaluates to true, similar to `isActive` for regular NavigationLinks. For these
 types of actions, you should use programmatic navigation, though.
 
+When you want to embed navigation links in a list, you might use `ListNavigationLink`, which renders some additional styles
+like a right-facing arrow.
+
+```swift
+ListNavigationLink(label: {
+    Text("Push another view")
+}) {
+    Text("Hello world!")
+}
+```
+
 ### Programmatic navigation
 
 ```swift
