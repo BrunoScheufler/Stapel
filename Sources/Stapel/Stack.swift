@@ -44,9 +44,7 @@ public class AnyStack<T>: ObservableObject {
             return
         }
         
-        withAnimation {
-            updatePusherView(pusherId, .set(view))
-        }
+        updatePusherView(pusherId, .set(view))    
     }
     
     /// Evaluate whether a given context would be pushed onto the stack
