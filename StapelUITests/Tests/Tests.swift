@@ -186,4 +186,27 @@ class Tests: XCTestCase {
         XCTAssert(app.staticTexts["Pushed with evaluation"].exists)
 
     }
+    
+    func testListRegular() {
+        let app = launchApp("list")
+        
+        XCTAssert(app.staticTexts["Root view"].exists)
+        
+        app.buttons["Push Regular"].tap()
+        
+        XCTAssert(!app.staticTexts["Root view"].exists)
+        XCTAssert(app.staticTexts["Pushed regular view"].exists)
+    }
+    
+    func testListDedicated() {
+        let app = launchApp("list")
+        
+        XCTAssert(app.staticTexts["Root view"].exists)
+
+        app.buttons["Push List"].tap()
+        
+        XCTAssert(!app.staticTexts["Root view"].exists)
+        XCTAssert(app.staticTexts["Pushed list view"].exists)
+
+    }
 }
