@@ -20,10 +20,14 @@ public struct StackNavigationLink<Label: View, Content: View>: View {
     @EnvironmentObject var stack: Stack
     
     public var body: some View {
-        Button(action: {
-            stack.push(view: AnyView(content))
-        }, label: {
-            label
-        })
+        NavigationLink(
+            destination: EmptyView(),
+            isActive: .constant(false),
+            label: {
+                label
+            })
+            .onTapGesture {
+                stack.push(view: AnyView(content))
+            }
     }
 }

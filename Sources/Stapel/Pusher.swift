@@ -59,10 +59,8 @@ struct Pusher: View {
                 }
                 
                 // Pop view from stack, set pusher to empty
-                withAnimation {
-                    stack.pusherPop(id)
-                    isActive = true
-                }
+                stack.pusherPop(id)
+                isActive = true
             })
     }
 }
@@ -78,14 +76,14 @@ struct Pusher: View {
 public struct WithPusher<Content: View>: View {
     let shouldPush: PusherEvalFunc?
     let content: Content
-
+    
     // Initialize stack layer
     /// - Parameter content: Views to render as children
     public init(@ViewBuilder content: @escaping () -> Content) {
         self.content = content()
         self.shouldPush = nil
     }
-
+    
     // Initialize stack layer with evaluation function
     /// - Parameter shouldPush: When this pusher is active, this function will decide whether a view should be pushed onto the stack
     /// - Parameter content: Views to render as children
