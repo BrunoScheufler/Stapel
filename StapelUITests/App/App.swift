@@ -48,8 +48,9 @@ struct StapelNestedScenario: View {
     }
 }
 
-struct StapelContextBasedScenario: View {
+struct StapelRootEvaluateScenario: View {
     @EnvironmentObject var stack: Stack
+    
     var body: some View {
         WithStapel({ (context) -> Bool in
             guard let hasExpected = context["expected"] else {
@@ -75,6 +76,48 @@ struct StapelContextBasedScenario: View {
     }
 }
 
+struct StapelNestedEvaluateScenario: View {
+    @EnvironmentObject var stack: Stack
+    
+    var body: some View {
+        // Initial layer, will always push
+        WithStapel {
+            VStack {
+                Text("Root View").navigationBarTitle("Root view")
+                StackNavigationLink(label: {
+                    Text("Push")
+                }) {
+                    
+                    // Second layer, only push further view if evaluation succeeds
+                    WithPusher({ (context) -> Bool in
+                        guard let hasExpected = context["expected"] else {
+                            return false
+                        }
+                        guard let isString = hasExpected as? String else {
+                            return false
+                        }
+                        return isString == "value"
+                    }) {
+                        Text("Second view").navigationBarTitle("Second view")
+                        Button(action: {
+                            stack.push(view: AnyView(Text("No-op")))
+                        }, label: {
+                            Text("Push falsy")
+                        })
+                        Button(action: {
+                            stack.push(view: AnyView(Text("Pushed with evaluation")), context: ["expected" : "value"])
+                        }, label: {
+                            Text("Push truthy")
+                        })
+                    }
+                    
+                }
+            }
+        }
+        .environmentObject(stack)
+    }
+}
+
 struct StapelWithoutVStackScenario: View {
     var body: some View {
         WithStapel {
@@ -90,8 +133,10 @@ struct StapelUITestsApp: App {
     
     func renderBody () -> AnyView {
         switch ProcessInfo.processInfo.environment["test_scenario"] {
-        case "evaluate":
-            return AnyView(StapelContextBasedScenario())
+        case "evaluate_root":
+            return AnyView(StapelRootEvaluateScenario())
+        case "evaluate_nested":
+            return AnyView(StapelNestedEvaluateScenario())
         case "nested":
             return AnyView(StapelNestedScenario())
         case "without_vstack":
