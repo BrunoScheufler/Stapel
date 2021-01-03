@@ -275,3 +275,22 @@ struct ContentView: View {
 ```
 
 #### Supplying context on push
+
+Now that we set up an evaluation function, we can supply relevant context information when pushing programmatically.
+
+```swift
+stack.push(view: AnyView(Text("Pushed with evaluation")), context: ["expected" : "value"])
+```
+
+As you can see, context is a simple dictionary with string keys and arbitrary values. These values will be passed to our evaluation
+function and result in a push if it returns true.
+
+You don't have to call push to find out if a view _would_ be pushed though, for this purpose you can use `stack.evaluate`. Similar to `stack.push`, it accepts
+an optional context dictionary, and will run the evaluation logic. Internally, we use `stack.evaluate` when pushing, so the results will match.
+
+```swift
+stack.evaluate(["expected" : "value"])
+```
+
+If you don't pass a context dictionary to `stack.push` or `stack.evaluate`, we'll pass an empty dictionary instead. Thus the pusher evaluation function always receives
+a dictionary and always returns a boolean value.
