@@ -20,14 +20,21 @@ public struct StackNavigationLink<Label: View, Content: View>: View {
     @EnvironmentObject var stack: Stack
     
     public var body: some View {
-        NavigationLink(
-            destination: EmptyView(),
-            isActive: .constant(false),
-            label: {
-                label
-            })
-            .onTapGesture {
+        // Nest native NavigationLink in Button
+        // to get benefits of styling while also
+        // having interactivity with regular button
+        Button(
+            action: {
                 stack.push(view: AnyView(content))
-            }
+            },
+            label: {
+                NavigationLink(
+                    destination: EmptyView(),
+                    isActive: .constant(false),
+                    label: {
+                        label
+                    }
+                )
+            })
     }
 }
