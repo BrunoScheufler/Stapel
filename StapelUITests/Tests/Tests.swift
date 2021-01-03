@@ -126,4 +126,64 @@ class Tests: XCTestCase {
         toSecond.tap()
         backToFirst.tap()
     }
+    
+    func testWithEvaluateRootTruthy() {
+        let app = launchApp("evaluate_root")
+
+        XCTAssert(app.staticTexts["Root view"].exists)
+        
+        let shouldntPush = app.buttons["Push falsy"]
+        shouldntPush.tap()
+        
+        XCTAssert(app.staticTexts["Root view"].exists)
+        XCTAssert(!app.staticTexts["No-op"].exists)
+    }
+    
+    func testWithEvaluateRootFalsy() {
+        let app = launchApp("evaluate_root")
+
+        XCTAssert(app.staticTexts["Root view"].exists)
+        
+        let shouldntPush = app.buttons["Push truthy"]
+        shouldntPush.tap()
+        
+        XCTAssert(!app.staticTexts["Root view"].exists)
+        XCTAssert(app.staticTexts["Pushed with evaluation"].exists)
+
+    }
+    
+    func testWithEvaluateNestedTruthy() {
+        let app = launchApp("evaluate_nested")
+
+        XCTAssert(app.staticTexts["Root view"].exists)
+        
+        app.buttons["Push"].tap()
+
+        XCTAssert(!app.staticTexts["Root view"].exists)
+        XCTAssert(app.staticTexts["Second view"].exists)
+
+        let shouldntPush = app.buttons["Push falsy"]
+        shouldntPush.tap()
+        
+        XCTAssert(app.staticTexts["Second view"].exists)
+        XCTAssert(!app.staticTexts["No-op"].exists)
+    }
+    
+    func testWithEvaluateNestedFalsy() {
+        let app = launchApp("evaluate_nested")
+
+        XCTAssert(app.staticTexts["Root view"].exists)
+        
+        app.buttons["Push"].tap()
+
+        XCTAssert(!app.staticTexts["Root view"].exists)
+        XCTAssert(app.staticTexts["Second view"].exists)
+        
+        let shouldntPush = app.buttons["Push truthy"]
+        shouldntPush.tap()
+        
+        XCTAssert(!app.staticTexts["Second view"].exists)
+        XCTAssert(app.staticTexts["Pushed with evaluation"].exists)
+
+    }
 }

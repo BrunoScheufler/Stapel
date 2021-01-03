@@ -176,3 +176,121 @@ struct ContentView: View {
 
 
 As you can see, you can go on and on (please split out your sub-views though).
+
+### Push evaluation
+
+In specific cases, you might like to prevent pushes to the active pusher. If the view that you'd push is equal to the current view, for example, it wouldn't make
+much sense to push it to the stack again. Especially for programmatic navigation, it can be helpful to add a condition when a push should happen and to be able
+to check if a push would succeed. This is why Stapel offers Push evaluation for each registered pusher.
+
+Setting up push evaluation requires two steps: Adding an evaluation function to the pusher that you'd like to control, and supplying context when pushing.
+
+#### Adding an evaluation function
+
+During each push, we check whether an evaluation function was set for the pusher that would receive the view to be pushed.
+If no function exists, the push will _always_ be allowed.
+If an evaluation function is set, we will invoke it and pass the supplied context.
+If the evaluation function returns `true`, we'll push the view onto the stack, otherwise, it'll be a no-op.
+
+Let's see how we'd register an evaluation function on our root level. If this evaluates to false, we won't onto that.
+
+```swift
+struct ContentView: View {
+    @StateObject var stack = Stack()
+    
+    var body: some View {
+        WithStapel({ (context) -> Bool in
+            guard let hasExpected = context["expected"] else {
+                return false
+            }
+            guard let isString = hasExpected as? String else {
+                return false
+            }
+            return isString == "value"
+        }) {
+            Text("Root view")
+            Button(action: {
+                stack.push(view: AnyView(Text("No-op")))
+            }, label: {
+                Text("Push falsy")
+            })
+            Button(action: {
+                stack.push(view: AnyView(Text("Pushed with evaluation")), context: ["expected" : "value"])
+            }, label: {
+                Text("Push truthy")
+            })
+        }
+        .environmentObject(stack)
+    }
+}
+```
+
+This will render two buttons on the root level, one that will supply the expected context and result in a push, and
+another one that will not push, as it doesn't supply a context (or an invalid context).
+
+While this only affects the initial layer, we might also want to control subsequent layers. This can be done by supplying an evaluation
+function to `WithPusher`.
+
+```swift
+struct ContentView: View {
+    @StateObject var stack = Stack()
+    var body: some View {
+        // Initial layer, will always push
+        WithStapel {
+            VStack {
+                Text("Root View").navigationBarTitle("Root view")
+                StackNavigationLink(label: {
+                    Text("Push another view")
+                }) {
+                    
+                    // Second layer, only push further view if evaluation succeeds
+                    WithPusher({ (context) -> Bool in
+                        guard let hasExpected = context["expected"] else {
+                            return false
+                        }
+                        guard let isString = hasExpected as? String else {
+                            return false
+                        }
+                        return isString == "value"
+                    }) {
+                        Text("Second view").navigationBarTitle("Second view")
+                        Button(action: {
+                            stack.push(view: AnyView(Text("No-op")))
+                        }, label: {
+                            Text("Push falsy")
+                        })
+                        Button(action: {
+                            stack.push(view: AnyView(Text("Pushed with evaluation")), context: ["expected" : "value"])
+                        }, label: {
+                            Text("Push truthy")
+                        })
+                    }
+                    
+                }
+            }
+        }
+        .environmentObject(stack)
+    }
+}
+```
+
+#### Supplying context on push
+
+Now that we set up an evaluation function, we can supply relevant context information when pushing programmatically.
+
+```swift
+stack.push(view: AnyView(Text("Pushed with evaluation")), context: ["expected" : "value"])
+```
+
+As you can see, context is a simple dictionary with string keys and arbitrary values. These values will be passed to our evaluation
+function and result in a push if it returns true.
+
+You don't have to call push to find out if a view _would_ be pushed though, for this purpose you can use `stack.evaluate`. Similar to `stack.push`, it accepts
+an optional context dictionary, and will run the evaluation logic. Internally, we use `stack.evaluate` when pushing, so the results will match.
+
+```swift
+stack.evaluate(["expected" : "value"])
+```
+
+If you don't pass a context dictionary to `stack.push` or `stack.evaluate`, we'll pass an empty dictionary instead. Thus the pusher evaluation function always receives
+a dictionary and always returns a boolean value.

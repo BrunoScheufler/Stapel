@@ -6,69 +6,107 @@ enum StackViewType<T> {
 }
 
 public class AnyStack<T>: ObservableObject {
-    @Published var views: [Int: StackViewType<T>]
+    // Store registered pusher states
+    @Published var pushers: [Int: PusherState<T>]
     
     public init() {
-        self.views = [:]
+        self.pushers = [:]
     }
     
     func activePusher() -> Int? {
-        guard self.views.count > 0 else {
+        guard self.pushers.count > 0 else {
             return nil
         }
         
-        let sortedKeys = self.views.keys.sorted()
+        let sortedKeys = self.pushers.keys.sorted()
         
         let activePusherId = sortedKeys[sortedKeys.count - 1]
         
         return activePusherId
     }
     
-    func rootPusher() -> Int? {
-        guard self.views.count > 0 else {
-            return nil
-        }
-        
-        let sortedKeys = self.views.keys.sorted()
-        
-        let rootPusherId = sortedKeys[0]
-        
-        return rootPusherId
-    }
-    
-    public func push(view: T) -> Void {
-        guard self.views.count > 0 else {
+    /// Push a view onto the stack
+    ///
+    /// - Parameter view: The view to push onto the stack
+    /// - Parameter context: Optional context map passed to evaluation function of pusher if supplied. If eval func returns false, view will not be pushed.
+    ///
+    ///     WithPusher {
+    ///       Text("Root View")
+    ///     }
+    public func push(view: T, context: [String: Any] = [:]) -> Void {
+        // Find active pusher to assign view to
+        guard let pusherId = activePusher() else {
             return
         }
         
-        let sortedKeys = self.views.keys.sorted()
-        
-        let pusherId = sortedKeys[sortedKeys.count - 1]
+        // Make sure we should push the view, otherwise return early
+        guard evaluate(context) else {
+            return
+        }
         
         withAnimation {
-            self.views[pusherId] = .set(view)
+            updatePusherView(pusherId, .set(view))
         }
     }
     
-    func pusherPop(_ pusher: Int) -> Void {
-        self.views[pusher] = .empty
+    /// Evaluate whether a given context would be pushed onto the stack
+    ///
+    /// - Parameter context: Optional context map passed to evaluation function of pusher if supplied.
+    ///   If eval func returns false, view would not be pushed.
+    ///   If no pusher is registered, `evaluate` will also return false.
+    ///   If no eval func is supplied, `evaluate` will return true.
+    /// - Returns: Whether view would be pushed onto the stack
+    ///
+    public func evaluate(_ context: [String: Any] = [:]) -> Bool {
+        // Find pusher that would be targeted
+        guard let pusherId = activePusher() else {
+            return false
+        }
         
-        let sortedKeys = self.views.keys.sorted()
+        // Retrieve pusher state (should exist)
+        guard let state = self.pushers[pusherId] else {
+            return false
+        }
+        
+        // Retrieve evaluator or return early
+        guard let eval = state.evaluator else {
+            // No evaluator supplied, return true, always push views
+            return true
+        }
+        
+        // Evaluate
+        return eval(context)
+    }
+    
+    func updatePusherView(_ pusherId: Int, _ viewType: StackViewType<T>) {
+        guard var state = self.pushers[pusherId] else {
+            return
+        }
+        
+        state.view = viewType
+        
+        self.pushers[pusherId] = state
+    }
+    
+    func pusherPop(_ pusher: Int) -> Void {
+        updatePusherView(pusher, .empty)
+        
+        let sortedKeys = self.pushers.keys.sorted()
         
         // Remove all views after popped pusher, this is to prevent old empty pushers from being registered
         sortedKeys.filter { (key) -> Bool in
             return key > pusher
         }.forEach({ key in
-            self.views.removeValue(forKey: key)
+            self.pushers.removeValue(forKey: key)
         })
     }
     
-    func register(pusher: Int) -> Void {
-        guard !self.views.keys.contains(pusher) else {
+    func register(_ pusher: Int, _ evaluate: PusherEvalFunc? = nil) -> Void {
+        guard !self.pushers.keys.contains(pusher) else {
             return
         }
         
-        self.views[pusher] = .empty
+        self.pushers[pusher] = PusherState(.empty, evaluate)
     }
 }
 

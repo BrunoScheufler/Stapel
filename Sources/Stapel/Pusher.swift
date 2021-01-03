@@ -1,6 +1,20 @@
 import SwiftUI
 
+public typealias PusherEvalFunc = (([String: Any]) -> Bool)
+
+struct PusherState<T> {
+    var view: StackViewType<T>
+    var evaluator: PusherEvalFunc?
+    
+    init(_ view: StackViewType<T>, _ evaluator: PusherEvalFunc? = nil) {
+        self.view = view
+        self.evaluator = evaluator
+    }
+}
+
 struct Pusher: View {
+    let evaluate: PusherEvalFunc?
+    
     // Assign time-based identifier to get incrementing
     // values for subsequent Pusher views instack. This is extremly
     // important for the system to work, although it would be great to use
@@ -10,13 +24,13 @@ struct Pusher: View {
     @EnvironmentObject var stack: Stack
     
     @State var isActive = true
-        
+    
     func retrieveViewToRender() -> (AnyView?) {
-        guard let hasEntry = stack.views[id] else {
+        guard let hasEntry = stack.pushers[id] else {
             return nil
         }
         
-        guard case let .set(withView) = hasEntry else {
+        guard case let .set(withView) = hasEntry.view else {
             return nil
         }
         
@@ -35,7 +49,7 @@ struct Pusher: View {
             // On appear, register in stack. If the current pusher
             // is already registered, this will be a noop
             .onAppear {
-                stack.register(pusher: id)
+                stack.register(id, self.evaluate)
             }
             // When the view is popped (value changes from true to false),
             // we'll pop the stack as well and reset the active flag
@@ -55,22 +69,35 @@ struct Pusher: View {
 
 /// Simple wrapper that automatically renders Pusher in VStack, after content.
 ///
+/// - Parameter shouldPush: An optional function to evaluate whether a view should be pushed onto the stack given a context map
 /// - Parameter content: The view(s) to render
 ///
 ///     WithPusher {
 ///       Text("Root View")
 ///     }
 public struct WithPusher<Content: View>: View {
+    let shouldPush: PusherEvalFunc?
     let content: Content
-    
+
+    // Initialize stack layer
+    /// - Parameter content: Views to render as children
     public init(@ViewBuilder content: @escaping () -> Content) {
         self.content = content()
+        self.shouldPush = nil
+    }
+
+    // Initialize stack layer with evaluation function
+    /// - Parameter shouldPush: When this pusher is active, this function will decide whether a view should be pushed onto the stack
+    /// - Parameter content: Views to render as children
+    public init(_ shouldPush: @escaping PusherEvalFunc, @ViewBuilder content: @escaping () -> Content) {
+        self.content = content()
+        self.shouldPush = shouldPush
     }
     
     public var body: some View {
         VStack {
             content
-            Pusher()
+            Pusher(evaluate: self.shouldPush)
         }
     }
 }
