@@ -17,6 +17,26 @@ struct StapelSimpleScenario: View {
     }
 }
 
+struct StapelListScenario: View {
+    var body: some View {
+        WithStapel {
+            List {
+                Text("Root view")
+                StackNavigationLink(label: {
+                    Text("Push Regular")
+                }, content: {
+                    Text("Pushed regular view")
+                })
+                ListNavigationLink(label: {
+                    Text("Push List")
+                }, content: {
+                    Text("Pushed list view")
+                })
+            }
+        }
+    }
+}
+
 struct StapelNestedScenario: View {
     var body: some View {
         WithStapel {
@@ -141,6 +161,8 @@ struct StapelUITestsApp: App {
             return AnyView(StapelNestedScenario())
         case "without_vstack":
             return AnyView(StapelWithoutVStackScenario())
+        case "list":
+            return AnyView(StapelListScenario())
         case "simple":
             fallthrough
         default:
